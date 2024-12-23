@@ -1,0 +1,29 @@
+.hidden {
+	display: none !important;
+}
+
+.container {
+	width: 90%;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.json-container {
+	margin-top: 1rem;
+	margin-bottom: 1rem;
+
+	outline: solid 1px black;
+	border-radius: 0.25rem;
+	padding: 0.5rem;
+}
+
+.json-object-properties,
+.json-array-items {
+	margin-left: 2rem;
+	display: block;
+}
+
+.json-object-property,
+.json-array-item {
+	display: block;
+}
