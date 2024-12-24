@@ -1,30 +1,114 @@
+class JsonCanvas extends HTMLElement {
+	css = `
+<style>
+	* {
+		color: #cdd6f4;
+	}
+
+	.json-container {
+		background: #313244;
+		display: block;
+		min-height: 5rem;
+
+		* {
+			color: #cdd6f4;
+		}
+	}
+
+	.json-array-item, .json-object-property {
+		margin-left: 1rem;
+		display: block;
+	}
+
+	.json-null {
+		color: #f2cdcd;
+	}
+
+	.json-boolean {
+		color: #fab387;
+	}
+
+	.json-number {
+		color: #89b4fa;
+	}
+
+	.json-string {
+		color: #a6e3a1;
+	}
+
+	.json-object-key {
+		color: #b4befe;
+	}
+
+	button {
+		background: transparent;
+	}
+</style>
+`;
+	constructor() {
+		super();
+		this.attachShadow({ mode: 'open' });
+	}
+
+	connectedCallback() {
+		const shadow = this.shadowRoot;
+
+		shadow.innerHTML = this.css;
+
+		const container = document.createElement('span');
+		container.classList.add('json-container');
+
+		shadow.appendChild(container);
+	}
+
+	renderObject(object) {
+		const shadow = this.shadowRoot;
+
+		shadow.innerHTML = this.css;
+
+		const container = document.createElement('span');
+		container.classList.add('json-container');
+		container.appendChild(createElement(object));
+
+		shadow.appendChild(container);
+	}
+}
+customElements.define('json-canvas', JsonCanvas);
+
+
 function isValueObject(object) {
-	return object === undefined 
+	return object === undefined
 		|| object === null
 		|| typeof object === 'string'
 		|| typeof object === 'number'
 		|| typeof object === 'boolean';
-	
+
 
 }
 
 function createValueElement(object) {
-	let value = 'null';
-
-	if (typeof object === 'string') {
-		value = `"${object}"`;
-	} else if (typeof object === 'number' || typeof object === 'boolean') {
-		value = `${object}`;
-	}
-
+	console.assert(isValueObject(object), '%o is not a value object', object);
 	const valueElement = document.createElement('span');
-	valueElement.classList.add('json-value');
-	valueElement.innerText = value;
+
+	if (object == null || object == undefined) {
+		valueElement.classList.add('json-null');
+		valueElement.innerText = 'null';
+	} else if (typeof object === 'boolean') {
+		valueElement.classList.add('json-boolean');
+		valueElement.innerText = object;
+	} else if (typeof object === 'number') {
+		valueElement.classList.add('json-number');
+		valueElement.innerText = object;
+	} else if (typeof object === 'string') {
+		valueElement.classList.add('json-string');
+		valueElement.innerText = `"${object}"`;
+	}
 
 	return valueElement;
 }
 
-function createArrayElement(object) {
+function createArrayElement(array) {
+	console.assert(Array.isArray(array), '%o is not an array', array);
 	const arrayElement = document.createElement('span');
 	arrayElement.classList.add('json-array');
 
@@ -42,22 +126,22 @@ function createArrayElement(object) {
 
 	buttonElement.addEventListener('click', () => {
 		if (buttonElement.innerText === '-') {
-			itemsElement.classList.add('hidden');
+			itemsElement.setAttribute('hidden', '');
 			buttonElement.innerText = '+';
 		} else {
-			itemsElement.classList.remove('hidden');
+			itemsElement.removeAttribute('hidden');
 			buttonElement.innerText = '-';
 		}
 
 	});
 
 	var index = 1;
-	const numberOfKeys = Object.keys(object).length;
-	for (key in object) {
-		const itemElement = document.createElement('div');
+	const numberOfKeys = Object.keys(array).length;
+	for (key in array) {
+		const itemElement = document.createElement('span');
 		itemElement.classList.add('json-array-item');
 
-		const valueElement = createElement(object[key]);
+		const valueElement = createElement(array[key]);
 		itemElement.appendChild(valueElement);
 
 		if (index < numberOfKeys) {
@@ -73,12 +157,13 @@ function createArrayElement(object) {
 	const closingElement = document.createElement('span');
 	closingElement.innerText = ']'
 	arrayElement.appendChild(closingElement);
-	
+
 	return arrayElement;
 }
 
 
 function createObjectElement(object) {
+	console.assert(object != null && object != undefined && typeof object === 'object', '%o is not an object', object);
 	const objectElement = document.createElement('span');
 	objectElement.classList.add('json-object');
 
@@ -96,10 +181,11 @@ function createObjectElement(object) {
 
 	buttonElement.addEventListener('click', () => {
 		if (buttonElement.innerText === '-') {
-			propertiesElement.classList.add('hidden');
+			propertiesElement.setAttribute('hidden', '');
 			buttonElement.innerText = '+';
 		} else {
 			propertiesElement.classList.remove('hidden');
+			propertiesElement.removeAttribute('hidden');
 			buttonElement.innerText = '-';
 		}
 
@@ -108,14 +194,14 @@ function createObjectElement(object) {
 	var index = 1;
 	const numberOfKeys = Object.keys(object).length;
 	for (key in object) {
-		const propertyElement = document.createElement('div');
+		const propertyElement = document.createElement('span');
 		propertyElement.classList.add('json-object-property');
 
 		const keyElement = document.createElement('span');
 		keyElement.classList.add('json-object-key')
 		keyElement.innerText = `"${key}"`
 		propertyElement.appendChild(keyElement);
-		
+
 		const colonElement = document.createElement('span');
 		colonElement.innerText = ':'
 		propertyElement.appendChild(colonElement);
@@ -153,16 +239,13 @@ function createElement(object) {
 
 window.addEventListener('load', () => {
 	document.querySelectorAll('.json-format-button[input][output]').forEach((button) => {
-			button.addEventListener('click', () => {
+		button.addEventListener('click', () => {
 			const inputElement = document.getElementById(button.getAttribute('input'));
-			const outputElement = document.getElementById(button.getAttribute('output'));
-
-			outputElement.innerHTML = '';
+			const outputElement = document.querySelector(`json-canvas#${button.getAttribute('output')}`);
 
 			const object = JSON.parse(inputElement.value);
-			const jsonElement = createElement(object);
 
-			outputElement.appendChild(jsonElement);
+			outputElement.renderObject(object);
 		});
 	});
 });
