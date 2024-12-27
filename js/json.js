@@ -1,76 +1,23 @@
 class JsonCanvas extends HTMLElement {
-	css = `
-<style>
-	* {
-		color: #cdd6f4;
-	}
-
-	.json-container {
-		background: #313244;
-		display: block;
-		min-height: 5rem;
-
-		* {
-			color: #cdd6f4;
-		}
-	}
-
-	.json-array-item, .json-object-property {
-		margin-left: 1rem;
-		display: block;
-	}
-
-	.json-null {
-		color: #f2cdcd;
-	}
-
-	.json-boolean {
-		color: #fab387;
-	}
-
-	.json-number {
-		color: #89b4fa;
-	}
-
-	.json-string {
-		color: #a6e3a1;
-	}
-
-	.json-object-key {
-		color: #b4befe;
-	}
-
-	button {
-		background: transparent;
-	}
-</style>
-`;
 	constructor() {
 		super();
-		this.attachShadow({ mode: 'open' });
 	}
 
 	connectedCallback() {
-		const shadow = this.shadowRoot;
-
-		shadow.innerHTML = this.css;
-
 		const container = document.createElement('span');
 		container.classList.add('json-container');
 
-		shadow.appendChild(container);
+		this.innerHTML = '';
+		this.appendChild(container);
 	}
 
 	renderObject(object) {
-		const shadow = this.shadowRoot;
-
-		shadow.innerHTML = this.css;
-
 		const container = document.createElement('span');
 		container.classList.add('json-container');
 		container.appendChild(createElement(object));
 
-		shadow.appendChild(container);
+		this.innerHTML = '';
+		this.appendChild(container);
 	}
 }
 customElements.define('json-canvas', JsonCanvas);
